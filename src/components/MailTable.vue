@@ -26,7 +26,8 @@
   </table>
   <ModalView v-if="currentEmail"
     @closeModal="currentEmail = null">
-    <MailView :email="currentEmail" />
+    <MailView :email="currentEmail"
+      @changeEmail="changeEmail" />
   </ModalView>
 </template>
 
@@ -65,14 +66,48 @@ export default {
 
     const currentEmail = ref(null);
     const openEmail = email => {
-      email.read = true;
-      updateEmail(email);
       currentEmail.value = email;
+      if (email) {
+        email.read = true;
+        updateEmail(email);
+      }
     };
 
     const archiveEmail = email => {
       email.archived = true;
       updateEmail(email);
+    };
+
+    const toggleRead = email => {
+      email.read = !email.read;
+      updateEmail(email);
+    };
+
+    const toggleArchive = email => {
+      email.archived = !email.archived;
+      updateEmail(email);
+    };
+
+    const changeEmail = ({
+      toggleRead,
+      toggleArchive,
+      save,
+      closeModal,
+      changeIndex
+    }) => {
+      const email = currentEmail.value;
+      if (toggleRead) email.read = !email.read;
+      if (toggleArchive) email.archived = !email.archived;
+      if (save) updateEmail(email);
+      if (closeModal) currentEmail.value = null;
+
+      // change current open email to next or perv
+      if (changeIndex) {
+        const emails = unarchivedEmails.value;
+        const currentIndex = emails.indexOf(currentEmail.value);
+        const newEmail = emails[currentIndex + changeIndex];
+        currentEmail.value = newEmail;
+      }
     };
 
     return {
@@ -81,7 +116,8 @@ export default {
       unarchivedEmails,
       openEmail,
       archiveEmail,
-      currentEmail
+      currentEmail,
+      changeEmail
     };
   }
 };
