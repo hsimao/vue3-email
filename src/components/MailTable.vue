@@ -1,8 +1,12 @@
 <template>
-  <BulkActionBar :emails="unarchivedEmails" />
+  <button @click="selectScreen('inbox')"
+    :disabled="selectedScreen === 'inbox'">Inbox</button>
+  <button @click="selectScreen('archive')"
+    :disabled="selectedScreen === 'archive'">Archived</button>
+  <BulkActionBar :emails="filteredEmails" />
   <table class="mail-table">
     <tbody>
-      <tr v-for="email in unarchivedEmails"
+      <tr v-for="email in filteredEmails"
         :key="email.id"
         :class="['clickable', email.read ? 'read' : '']">
         <td>
@@ -51,6 +55,13 @@ export default {
   async setup() {
     const { data } = await axios.get(`${baseUrl}/emails`);
     const emails = ref(data);
+    const selectedScreen = ref('inbox');
+    const emailSelection = useEmailSelection();
+
+    const selectScreen = newScreen => {
+      selectedScreen.value = newScreen;
+      emailSelection.clear();
+    };
 
     const sortedEmails = computed(() => {
       return emails.value.sort((a, b) => {
@@ -58,8 +69,12 @@ export default {
       });
     });
 
-    const unarchivedEmails = computed(() => {
-      return sortedEmails.value.filter(email => !email.archived);
+    const filteredEmails = computed(() => {
+      if (selectedScreen.value === 'inbox') {
+        return sortedEmails.value.filter(email => !email.archived);
+      } else {
+        return sortedEmails.value.filter(email => email.archived);
+      }
     });
 
     const updateEmail = email => {
@@ -105,7 +120,7 @@ export default {
 
       // change current open email to next or perv
       if (changeIndex) {
-        const emails = unarchivedEmails.value;
+        const emails = filteredEmails.value;
         const currentIndex = emails.indexOf(currentEmail.value);
         const newEmail = emails[currentIndex + changeIndex];
         currentEmail.value = newEmail;
@@ -115,12 +130,14 @@ export default {
     return {
       format,
       getTime,
-      unarchivedEmails,
+      filteredEmails,
       openEmail,
       archiveEmail,
       currentEmail,
       changeEmail,
-      emailSelection: useEmailSelection()
+      selectScreen,
+      selectedScreen,
+      emailSelection
     };
   }
 };
