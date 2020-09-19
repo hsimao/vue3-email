@@ -1,25 +1,25 @@
 <template>
+  <h1>{{ emailSelection.emails.size }} emails selected</h1>
   <table class="mail-table">
     <tbody>
       <tr v-for="email in unarchivedEmails"
         :key="email.id"
-        :class="['clickable', email.read ? 'read' : '']"
-        @click="openEmail(email)">
-        <td><input type="checkbox" /></td>
-        <td>{{ email.from }}</td>
+        :class="['clickable', email.read ? 'read' : '']">
         <td>
-          <p>
-            <strong>{{ email.subject }}</strong>
-          </p>
+          <input type="checkbox"
+            @click="emailSelection.toggle(email)"
+            :selected="emailSelection.emails.has(email)" />
         </td>
-        <td class="date">
+        <td @click="openEmail(email)">{{ email.from }}</td>
+        <td @click="openEmail(email)">
+          <p><strong>{{ email.subject }}</strong></p>
+        </td>
+        <td class="date"
+          @click="openEmail(email)">
           {{ format(new Date(email.sentAt), 'MMM do yyyy') }}
         </td>
         <td>
-          <button
-            @click="archiveEmail(email)">
-            Archive
-          </button>
+          <button @click="archiveEmail(email)">Archive</button>
         </td>
       </tr>
     </tbody>
@@ -34,10 +34,10 @@
 <script>
 import { format, getTime } from 'date-fns';
 import axios from 'axios';
-import { ref, computed } from 'vue';
+import { ref, reactive, computed } from 'vue';
 import MailView from '@/components/MailView.vue';
 import ModalView from '@/components/ModalView';
-
+import useEmailSelection from '@/composables/useEmailSelection';
 const baseUrl = 'http://localhost:3000';
 
 export default {
@@ -117,11 +117,11 @@ export default {
       openEmail,
       archiveEmail,
       currentEmail,
-      changeEmail
+      changeEmail,
+      emailSelection: useEmailSelection()
     };
   }
 };
 </script>
 
-<style scoped>
-</style>
+<style scoped></style>
