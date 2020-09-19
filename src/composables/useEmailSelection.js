@@ -10,9 +10,20 @@ function emailSelection() {
       emails.add(email);
     }
   };
+
+  const clear = () => {
+    emails.clear();
+  };
+
+  const addMultiple = newEmails => {
+    newEmails.forEach(email => emails.add(email));
+  };
+
   return {
     emails,
-    toggle
+    toggle,
+    clear,
+    addMultiple
   };
 }
 
